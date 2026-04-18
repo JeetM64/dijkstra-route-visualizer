@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {"id":0,"name":"Warehouse"},
+    {"id":1,"name":"Hub-Alpha"},
+    {"id":2,"name":"Hub-Beta"},
+    {"id":3,"name":"Hub-Gamma"},
+    {"id":4,"name":"Hub-Delta"},
+    {"id":5,"name":"Hub-Epsilon"},
+    {"id":6,"name":"Destination"}
+  ],
+  "edges": [
+    {"id":0,"u":0,"v":1,"w":4},
+    {"id":1,"u":0,"v":2,"w":2},
+    {"id":2,"u":1,"v":3,"w":5},
+    {"id":3,"u":2,"v":3,"w":8},
+    {"id":4,"u":2,"v":4,"w":3},
+    {"id":5,"u":3,"v":6,"w":6},
+    {"id":6,"u":4,"v":5,"w":7},
+    {"id":7,"u":5,"v":6,"w":1},
+    {"id":8,"u":1,"v":4,"w":2}
+  ],
+  "path": [0,2,4,5,6],
+  "dist": {"0":0,"1":4,"2":2,"3":9,"4":5,"5":12,"6":13},
+  "parent": {"0":null,"1":0,"2":0,"3":1,"4":2,"5":4,"6":5},
+  "steps": [
+    {"step":1,"node":0,"dist":0,"via":null,"relaxed":true},
+    {"step":2,"node":2,"dist":2,"via":0,"relaxed":true},
+    {"step":3,"node":1,"dist":4,"via":0,"relaxed":true},
+    {"step":4,"node":4,"dist":5,"via":2,"relaxed":true},
+    {"step":5,"node":3,"dist":9,"via":1,"relaxed":true},
+    {"step":6,"node":5,"dist":12,"via":4,"relaxed":true},
+    {"step":7,"node":6,"dist":13,"via":5,"relaxed":false}
+  ],
+  "src":0,
+  "dest":6,
+  "cost":13,
+  "timeMs":0.000000000,
+  "nodeCount":7,
+  "edgeCount":9,
+  "pathLength":5
+}
