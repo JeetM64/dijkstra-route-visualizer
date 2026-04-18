@@ -3,125 +3,173 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>RouteCore — Dijkstra Visualizer v2.0</title>
+<title>RouteCore — Dijkstra + Waypoint Visualizer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg0:#080b0f;--bg1:#0d1117;--bg2:#141920;--bg3:#1c2330;--bg4:#232d3d;
-  --border:#1e2d42;--border2:#2a3f58;
-  --accent:#00d4ff;--accent2:#0af0a0;--accent3:#f0a500;--accent4:#ff4d6d;
-  --text:#e2eaf6;--text2:#8899b0;--text3:#4a5a72;
-  --mono:'JetBrains Mono',monospace;--sans:'Space Grotesk',sans-serif;
+  --bg0:#07090d;--bg1:#0c0f15;--bg2:#121620;--bg3:#191e2a;--bg4:#202736;
+  --border:#1a2335;--border2:#253348;
+  --c1:#00d4ff;--c2:#0af0a0;--c3:#f0a500;--c4:#ff4d6d;--c5:#b06aff;
+  --text:#dde8f8;--text2:#7a8fa8;--text3:#3d506a;
+  --mono:'JetBrains Mono',monospace;--display:'Syne',sans-serif;
 }
 html{font-size:14px}
-body{background:var(--bg0);color:var(--text);font-family:var(--sans);height:100vh;overflow:hidden}
-body::before{content:'';position:fixed;inset:0;
-  background-image:linear-gradient(rgba(0,212,255,.022) 1px,transparent 1px),
-  linear-gradient(90deg,rgba(0,212,255,.022) 1px,transparent 1px);
-  background-size:44px 44px;pointer-events:none;z-index:0}
+body{background:var(--bg0);color:var(--text);font-family:var(--display);height:100vh;overflow:hidden}
+
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:radial-gradient(circle at 20% 20%,rgba(0,212,255,.04) 0%,transparent 50%),
+    radial-gradient(circle at 80% 80%,rgba(176,106,255,.04) 0%,transparent 50%);
+  pointer-events:none;z-index:0
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,212,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,255,.018) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0
+}
+
 #app{position:relative;z-index:1;display:flex;flex-direction:column;height:100vh}
 
 /* HEADER */
-header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
-  padding:11px 22px;background:rgba(13,17,23,.97);border-bottom:1px solid var(--border);z-index:50}
-.logo{display:flex;align-items:center;gap:11px}
-.logo-badge{width:32px;height:32px;border-radius:7px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
+header{
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;background:rgba(12,15,21,.97);
+  border-bottom:1px solid var(--border);
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--c1),var(--c5));
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-weight:800;font-size:12px;color:#000;letter-spacing:-1px}
-.logo-name{font-size:16px;font-weight:700;letter-spacing:-.4px}
-.logo-name em{color:var(--accent);font-style:normal}
+  font-family:var(--mono);font-weight:800;font-size:11px;color:#000;letter-spacing:-1px
+}
+.logo-name{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo-name em{color:var(--c1);font-style:normal}
 .logo-sub{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.8px;margin-top:1px}
-.htags{display:flex;gap:6px}
-.htag{padding:3px 9px;border-radius:20px;font-size:10px;font-family:var(--mono);font-weight:600;letter-spacing:.4px}
-.htag-b{background:rgba(0,212,255,.1);color:var(--accent);border:1px solid rgba(0,212,255,.25)}
-.htag-g{background:rgba(10,240,160,.1);color:var(--accent2);border:1px solid rgba(10,240,160,.25)}
-.htag-a{background:rgba(240,165,0,.1);color:var(--accent3);border:1px solid rgba(240,165,0,.25)}
+.htags{display:flex;gap:5px}
+.htag{padding:3px 9px;border-radius:20px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.4px}
+.ht1{background:rgba(0,212,255,.1);color:var(--c1);border:1px solid rgba(0,212,255,.22)}
+.ht2{background:rgba(10,240,160,.1);color:var(--c2);border:1px solid rgba(10,240,160,.22)}
+.ht3{background:rgba(176,106,255,.1);color:var(--c5);border:1px solid rgba(176,106,255,.22)}
 
 /* BODY */
-#body{flex:1;display:grid;grid-template-columns:265px 1fr;overflow:hidden;min-height:0}
+#body{flex:1;display:grid;grid-template-columns:280px 1fr;overflow:hidden;min-height:0}
 
 /* SIDEBAR */
-#sidebar{background:var(--bg1);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+#sidebar{
+  background:var(--bg1);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden
+}
 #sidebar::-webkit-scrollbar{width:3px}
 #sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
 .pnl{border-bottom:1px solid var(--border)}
 .pnl-hdr{padding:9px 13px;display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;user-select:none;background:var(--bg1);transition:background .15s}
+  cursor:pointer;user-select:none;transition:background .12s}
 .pnl-hdr:hover{background:var(--bg2)}
-.pnl-ttl{font-size:9px;font-weight:700;letter-spacing:1.3px;color:var(--text3);font-family:var(--mono);text-transform:uppercase}
+.pnl-ttl{font-size:9px;font-weight:700;letter-spacing:1.4px;color:var(--text3);font-family:var(--mono);text-transform:uppercase}
 .pnl-arr{color:var(--text3);font-size:9px;transition:transform .2s}
 .pnl-arr.open{transform:rotate(180deg)}
 .pnl-body{padding:9px 11px;display:flex;flex-direction:column;gap:6px}
 .pnl-body.closed{display:none}
 
-/* mode buttons */
+/* buttons */
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .mb{padding:7px 7px;border-radius:7px;border:1px solid var(--border2);background:var(--bg2);
   color:var(--text2);font-size:11px;font-family:var(--mono);font-weight:500;cursor:pointer;
-  transition:all .15s;display:flex;align-items:center;gap:5px}
-.mb:hover{background:var(--bg3);color:var(--text)}
-.mb.on{background:rgba(0,212,255,.1);color:var(--accent);border-color:rgba(0,212,255,.3)}
-.mb.del{color:var(--accent4)}
-.mb.del:hover,.mb.del.on{background:rgba(255,77,109,.1);border-color:rgba(255,77,109,.3);color:var(--accent4)}
-.mb.ok{color:var(--accent2)}
-.mb.ok:hover{background:rgba(10,240,160,.1);border-color:rgba(10,240,160,.3);color:var(--accent2)}
+  transition:all .12s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.mb:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.mb.on{background:rgba(0,212,255,.1);color:var(--c1);border-color:rgba(0,212,255,.3)}
+.mb.del{color:var(--c4)}
+.mb.del:hover,.mb.del.on{background:rgba(255,77,109,.1);border-color:rgba(255,77,109,.3);color:var(--c4)}
+.mb.ok{color:var(--c2)}
+.mb.ok:hover{background:rgba(10,240,160,.1);border-color:rgba(10,240,160,.3);color:var(--c2)}
+.mb.wp{color:var(--c5)}
+.mb.wp:hover,.mb.wp.on{background:rgba(176,106,255,.1);border-color:rgba(176,106,255,.3);color:var(--c5)}
 .mb-full{grid-column:span 2}
 
-/* endpoint rows */
+/* endpoint section */
+.ep-wrap{display:flex;flex-direction:column;gap:5px}
 .ep{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:7px;
-  background:var(--bg2);border:1px solid var(--border)}
-.ep-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.ep-dot.src{background:#2ecc71;box-shadow:0 0 5px #2ecc71}
-.ep-dot.dst{background:#ff4d6d;box-shadow:0 0 5px #ff4d6d}
+  background:var(--bg2);border:1px solid var(--border);transition:border-color .15s}
+.ep.active-pick{border-color:var(--c1);background:rgba(0,212,255,.05)}
+.ep-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ep-dot.src{background:#2ecc71;box-shadow:0 0 6px #2ecc71}
+.ep-dot.dst{background:#ff4d6d;box-shadow:0 0 6px #ff4d6d}
+.ep-dot.wp{background:var(--c5);box-shadow:0 0 6px var(--c5)}
 .ep-lbl{font-size:10px;font-family:var(--mono);color:var(--text3);flex:1}
 .ep-val{font-size:11px;font-family:var(--mono);font-weight:700;color:var(--text);min-width:18px}
 .ep-btn{padding:3px 8px;border-radius:5px;border:1px solid var(--border2);
-  background:var(--bg3);color:var(--text2);font-size:10px;font-family:var(--mono);cursor:pointer}
+  background:var(--bg3);color:var(--text2);font-size:9px;font-family:var(--mono);cursor:pointer;white-space:nowrap}
 .ep-btn:hover{background:var(--bg4);color:var(--text)}
+.ep-btn.wp-set{border-color:rgba(176,106,255,.35);color:var(--c5)}
+.ep-clear{padding:2px 7px;border-radius:5px;border:1px solid rgba(255,77,109,.25);
+  background:transparent;color:rgba(255,77,109,.6);font-size:9px;font-family:var(--mono);cursor:pointer}
+.ep-clear:hover{background:rgba(255,77,109,.08);color:var(--c4)}
+
+/* waypoint mode info */
+.wp-info{padding:7px 9px;border-radius:7px;background:rgba(176,106,255,.07);
+  border:1px solid rgba(176,106,255,.2);font-size:10px;font-family:var(--mono);
+  color:var(--c5);line-height:1.5;display:none}
+.wp-info.show{display:block}
+.wp-route{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:6px 8px;border-radius:7px;
+  background:var(--bg2);border:1px solid var(--border);font-size:10px;font-family:var(--mono);display:none}
+.wp-route.show{display:flex}
+.wp-seg{padding:2px 7px;border-radius:4px;font-weight:600}
+.wp-seg-1{background:rgba(46,204,113,.1);color:#2ecc71;border:1px solid rgba(46,204,113,.25)}
+.wp-seg-2{background:rgba(176,106,255,.1);color:var(--c5);border:1px solid rgba(176,106,255,.25)}
+.wp-arrow{color:var(--text3);font-size:10px}
+.wp-cost{font-size:9px;color:var(--text3)}
 
 /* anim controls */
 .ac{display:flex;gap:5px}
 .ab{flex:1;padding:7px 3px;border-radius:7px;border:1px solid var(--border2);
   background:var(--bg2);color:var(--text2);font-size:11px;font-family:var(--mono);
-  cursor:pointer;text-align:center;transition:all .15s}
+  cursor:pointer;text-align:center;transition:all .12s}
 .ab:hover:not(:disabled){background:var(--bg3);color:var(--text)}
 .ab:disabled{opacity:.3;cursor:not-allowed}
-.ab.run{background:rgba(10,240,160,.1);color:var(--accent2);border-color:rgba(10,240,160,.3)}
+.ab.run{background:rgba(10,240,160,.1);color:var(--c2);border-color:rgba(10,240,160,.28)}
 .ab.run:hover{background:rgba(10,240,160,.18)}
-.ab.stp{background:rgba(0,212,255,.08);color:var(--accent);border-color:rgba(0,212,255,.25)}
-.ab.stp:hover:not(:disabled){background:rgba(0,212,255,.16)}
-.spd{display:flex;align-items:center;gap:7px;font-size:10px;font-family:var(--mono);color:var(--text3)}
+.ab.stp{background:rgba(0,212,255,.08);color:var(--c1);border-color:rgba(0,212,255,.22)}
+.ab.stp:hover:not(:disabled){background:rgba(0,212,255,.15)}
+.spd{display:flex;align-items:center;gap:6px;font-size:10px;font-family:var(--mono);color:var(--text3)}
 input[type=range]{flex:1;height:3px;-webkit-appearance:none;background:var(--border2);border-radius:2px;outline:none}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
-  border-radius:50%;background:var(--accent);cursor:pointer}
+  border-radius:50%;background:var(--c1);cursor:pointer}
 
 /* step list */
-#step-list{display:flex;flex-direction:column;gap:3px;max-height:190px;overflow-y:auto}
+#step-list{display:flex;flex-direction:column;gap:3px;max-height:180px;overflow-y:auto}
 #step-list::-webkit-scrollbar{width:3px}
 #step-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 .si{padding:5px 8px;border-radius:6px;border:1px solid var(--border);
   background:var(--bg2);font-size:10px;font-family:var(--mono);
-  display:flex;align-items:center;gap:7px;transition:all .18s}
-.si.cur{background:rgba(0,212,255,.08);border-color:rgba(0,212,255,.3);color:var(--accent)}
-.si.done{background:rgba(10,240,160,.06);border-color:rgba(10,240,160,.25);color:var(--accent2)}
+  display:flex;align-items:center;gap:7px;transition:all .15s}
+.si.cur{background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.28);color:var(--c1)}
+.si.done{background:rgba(10,240,160,.05);border-color:rgba(10,240,160,.22);color:var(--c2)}
+.si.wp-phase{background:rgba(176,106,255,.07);border-color:rgba(176,106,255,.28);color:var(--c5)}
+.si.wp-done{background:rgba(176,106,255,.05);border-color:rgba(176,106,255,.22);color:var(--c5)}
 .si-n{width:16px;height:16px;border-radius:50%;background:var(--bg3);
   display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}
-.si.cur .si-n{background:var(--accent);color:#000}
-.si.done .si-n{background:var(--accent2);color:#000}
+.si.cur .si-n{background:var(--c1);color:#000}
+.si.done .si-n{background:var(--c2);color:#000}
+.si.wp-phase .si-n,.si.wp-done .si-n{background:var(--c5);color:#000}
+.si-phase{font-size:8px;padding:1px 5px;border-radius:3px;margin-left:auto;flex-shrink:0}
+.phase-1{background:rgba(46,204,113,.12);color:#2ecc71}
+.phase-2{background:rgba(176,106,255,.12);color:var(--c5)}
 
 /* dist table */
 #dist-tbl{display:flex;flex-direction:column;gap:2px}
 .dr{display:flex;justify-content:space-between;align-items:center;
-  padding:4px 7px;border-radius:5px;background:var(--bg2);
-  font-size:10px;font-family:var(--mono)}
-.dr.path{background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.2)}
+  padding:4px 7px;border-radius:5px;background:var(--bg2);font-size:10px;font-family:var(--mono)}
+.dr.path1{background:rgba(46,204,113,.07);border:1px solid rgba(46,204,113,.18)}
+.dr.path2{background:rgba(176,106,255,.07);border:1px solid rgba(176,106,255,.18)}
 .dr-lbl{color:var(--text3)}
 .dr-val{font-weight:700;color:var(--text)}
-.dr.path .dr-val{color:var(--accent3)}
+.dr.path1 .dr-val{color:#2ecc71}
+.dr.path2 .dr-val{color:var(--c5)}
 
 /* RIGHT */
 #right{display:flex;flex-direction:column;overflow:hidden;min-height:0}
@@ -129,20 +177,22 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 /* toolbar */
 #tb{flex-shrink:0;padding:7px 13px;background:var(--bg1);border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.tb-sep{width:1px;height:19px;background:var(--border);margin:0 1px}
-.tb{padding:5px 11px;border-radius:7px;border:1px solid var(--border2);background:var(--bg2);
+.tb-sep{width:1px;height:18px;background:var(--border);margin:0 1px}
+.tb{padding:5px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--bg2);
   color:var(--text2);font-size:11px;font-family:var(--mono);cursor:pointer;
-  transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+  transition:all .12s;white-space:nowrap;display:flex;align-items:center;gap:4px}
 .tb:hover{background:var(--bg3);color:var(--text)}
-.tb.on{background:rgba(0,212,255,.1);color:var(--accent);border-color:rgba(0,212,255,.3)}
-.tb.run{background:rgba(10,240,160,.1);color:var(--accent2);border-color:rgba(10,240,160,.3)}
+.tb.on{background:rgba(0,212,255,.1);color:var(--c1);border-color:rgba(0,212,255,.28)}
+.tb.run{background:rgba(10,240,160,.1);color:var(--c2);border-color:rgba(10,240,160,.28)}
 .tb.run:hover{background:rgba(10,240,160,.18)}
-.tb.red{color:var(--accent4)}
-.tb.red:hover{background:rgba(255,77,109,.08);border-color:rgba(255,77,109,.3)}
+.tb.red{color:var(--c4)}
+.tb.red:hover{background:rgba(255,77,109,.08);border-color:rgba(255,77,109,.28)}
+.tb.wpt{color:var(--c5)}
+.tb.wpt:hover,.tb.wpt.on{background:rgba(176,106,255,.1);border-color:rgba(176,106,255,.28);color:var(--c5)}
 .tb:disabled{opacity:.3;cursor:not-allowed}
 #mode-chip{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--text3)}
-.pulse{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 1.8s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+.pulse{width:5px;height:5px;border-radius:50%;background:var(--c1);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 
 /* canvas */
 #cvwrap{flex:1;position:relative;background:var(--bg0);overflow:hidden;min-height:0}
@@ -150,27 +200,46 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 #cvwrap.m-edge svg{cursor:cell}
 #cvwrap.m-delete svg{cursor:not-allowed}
 #cvwrap.m-select svg{cursor:default}
-#cvwrap.m-src svg,#cvwrap.m-dest svg{cursor:pointer}
+#cvwrap.m-src svg,#cvwrap.m-dest svg,#cvwrap.m-wp svg{cursor:pointer}
 #hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
-  background:rgba(8,11,15,.88);border:1px solid var(--border2);border-radius:20px;
+  background:rgba(7,9,13,.9);border:1px solid var(--border2);border-radius:20px;
   padding:5px 14px;font-size:10px;font-family:var(--mono);color:var(--text3);
-  pointer-events:none;backdrop-filter:blur(8px);white-space:nowrap}
+  pointer-events:none;backdrop-filter:blur(8px);white-space:nowrap;transition:opacity .2s}
 
 /* info bar */
 #infobar{flex-shrink:0;padding:6px 13px;background:var(--bg1);border-top:1px solid var(--border);
   font-size:11px;font-family:var(--mono);color:var(--text2);min-height:32px;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-#infobar b{color:var(--accent2)}
-.err{color:var(--accent4)}
-.hi{color:var(--accent)}
-.ib-sep{width:1px;height:13px;background:var(--border);flex-shrink:0}
-#ib-path{color:var(--accent3);font-weight:600;margin-left:auto;max-width:380px;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#infobar b{color:var(--c2)}
+.err{color:var(--c4)}
+.hi{color:var(--c1)}
+.hi2{color:var(--c5)}
+.ib-sep{width:1px;height:12px;background:var(--border);flex-shrink:0}
+#ib-path{font-weight:600;margin-left:auto;max-width:400px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* modal */
+#modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);
+  display:none;align-items:center;justify-content:center;z-index:200}
+#modal-bg.show{display:flex}
+#modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
+  padding:22px;width:255px;box-shadow:0 24px 60px rgba(0,0,0,.8)}
+.m-ttl{font-size:12px;font-weight:700;letter-spacing:.4px;color:var(--text);margin-bottom:13px;font-family:var(--mono)}
+.m-lbl{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:5px}
+#w-inp{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:7px;color:var(--text);font-size:20px;font-family:var(--mono);font-weight:700;
+  outline:none;transition:border .12s}
+#w-inp:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(0,212,255,.09)}
+.m-btns{display:flex;gap:7px;margin-top:13px}
+.m-btn{flex:1;padding:8px;border-radius:7px;border:1px solid var(--border2);
+  background:var(--bg3);color:var(--text2);font-size:11px;font-family:var(--mono);cursor:pointer;transition:all .12s}
+.m-btn:hover{background:var(--bg4)}
+.m-btn.ok{background:rgba(10,240,160,.1);color:var(--c2);border-color:rgba(10,240,160,.28)}
+.m-btn.ok:hover{background:rgba(10,240,160,.18)}
 
 /* benchmark */
 #bench{flex-shrink:0;background:var(--bg1);border-top:1px solid var(--border)}
-.bench-hdr{padding:9px 16px;display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;transition:background .15s}
+.bench-hdr{padding:9px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .12s}
 .bench-hdr:hover{background:var(--bg2)}
 .bench-ttl{font-size:9px;font-weight:700;letter-spacing:1.3px;color:var(--text3);font-family:var(--mono);text-transform:uppercase}
 .bench-arr{font-size:10px;font-family:var(--mono);color:var(--text3)}
@@ -178,32 +247,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
 th{text-align:left;padding:7px 9px;font-size:9px;font-weight:700;letter-spacing:1px;
   text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
-td{padding:6px 9px;border-bottom:1px solid rgba(30,45,66,.5);color:var(--text2)}
+td{padding:6px 9px;border-bottom:1px solid rgba(26,35,53,.6);color:var(--text2)}
 tr:hover td{color:var(--text)}
-.tc-d{color:var(--accent);font-weight:600}
-.tc-t{color:var(--accent2)}
-.tc-c{color:var(--accent3)}
+.tc-d{color:var(--c1);font-weight:600}
+.tc-t{color:var(--c2)}
+.tc-c{color:var(--c3)}
 .bench-note{margin-top:9px;padding:8px 11px;background:var(--bg2);border-radius:7px;
   border:1px solid var(--border);font-size:10px;font-family:var(--mono);color:var(--text3);line-height:1.9}
-.bench-note b{color:var(--accent)}
-
-/* modal */
-#modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);
-  display:none;align-items:center;justify-content:center;z-index:200}
-#modal-bg.show{display:flex}
-#modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
-  padding:22px;width:255px;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 30px rgba(0,212,255,.07)}
-.m-ttl{font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--text);margin-bottom:13px;font-family:var(--mono)}
-.m-lbl{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:5px}
-#w-inp{width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:7px;color:var(--text);font-size:20px;font-family:var(--mono);font-weight:700;outline:none;transition:border .15s}
-#w-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.1)}
-.m-btns{display:flex;gap:7px;margin-top:13px}
-.m-btn{flex:1;padding:8px;border-radius:7px;border:1px solid var(--border2);
-  background:var(--bg3);color:var(--text2);font-size:11px;font-family:var(--mono);cursor:pointer;transition:all .15s}
-.m-btn:hover{background:var(--bg4)}
-.m-btn.ok{background:rgba(10,240,160,.1);color:var(--accent2);border-color:rgba(10,240,160,.3)}
-.m-btn.ok:hover{background:rgba(10,240,160,.2)}
+.bench-note b{color:var(--c1)}
 
 @media(max-width:820px){
   #body{grid-template-columns:1fr;grid-template-rows:auto 1fr}
@@ -216,58 +267,81 @@ tr:hover td{color:var(--text)}
 
 <header>
   <div class="logo">
-    <div class="logo-badge">RC</div>
+    <div class="logo-mark">RC</div>
     <div>
       <div class="logo-name">Route<em>Core</em></div>
-      <div class="logo-sub">DIJKSTRA ENGINE v2.0 · DSA PROJECT</div>
+      <div class="logo-sub">DIJKSTRA + WAYPOINT ENGINE v3.0</div>
     </div>
   </div>
   <div class="htags">
-    <span class="htag htag-b">O((V+E) log V)</span>
-    <span class="htag htag-g">C++17 · D3.js</span>
-    <span class="htag htag-a">INTERACTIVE</span>
+    <span class="htag ht1">Dijkstra</span>
+    <span class="htag ht2">C++11 · D3.js</span>
+    <span class="htag ht3">Waypoint Routing</span>
   </div>
 </header>
 
 <div id="body">
 <div id="sidebar">
 
+  <!-- Tools -->
   <div class="pnl">
     <div class="pnl-hdr" onclick="togglePanel(this)">
       <span class="pnl-ttl">Graph Tools</span><span class="pnl-arr open">▼</span>
     </div>
     <div class="pnl-body">
       <div class="mgrid">
-        <button class="mb on"  id="sb-node"   onclick="setMode('node')">⊕ Add Node</button>
-        <button class="mb"     id="sb-edge"   onclick="setMode('edge')">╌ Add Edge</button>
+        <button class="mb on"  id="sb-node"   onclick="setMode('node')">⊕ Node</button>
+        <button class="mb"     id="sb-edge"   onclick="setMode('edge')">╌ Edge</button>
         <button class="mb"     id="sb-select" onclick="setMode('select')">⇄ Move</button>
         <button class="mb del" id="sb-delete" onclick="setMode('delete')">✕ Delete</button>
-        <button class="mb ok mb-full" onclick="loadExample()">⟳ Load Example Graph</button>
+        <button class="mb ok mb-full" onclick="loadExample()">⟳ Load Example</button>
         <button class="mb del mb-full" onclick="clearAll()">◻ Clear Canvas</button>
       </div>
     </div>
   </div>
 
+  <!-- Endpoints -->
   <div class="pnl">
     <div class="pnl-hdr" onclick="togglePanel(this)">
-      <span class="pnl-ttl">Source / Destination</span><span class="pnl-arr open">▼</span>
+      <span class="pnl-ttl">Route Endpoints</span><span class="pnl-arr open">▼</span>
     </div>
     <div class="pnl-body">
-      <div class="ep">
-        <div class="ep-dot src"></div>
-        <span class="ep-lbl">Source</span>
-        <span class="ep-val" id="ep-src">—</span>
-        <button class="ep-btn" onclick="pickEndpoint('src')">Set</button>
+      <div class="ep-wrap">
+        <div class="ep" id="ep-src-row">
+          <div class="ep-dot src"></div>
+          <span class="ep-lbl">Source</span>
+          <span class="ep-val" id="ep-src">—</span>
+          <button class="ep-btn" onclick="pickEndpoint('src')">Set</button>
+        </div>
+        <div class="ep" id="ep-wp-row">
+          <div class="ep-dot wp"></div>
+          <span class="ep-lbl">Waypoint</span>
+          <span class="ep-val" id="ep-wp">—</span>
+          <button class="ep-btn wp-set" onclick="pickEndpoint('wp')">Set</button>
+          <button class="ep-clear" id="ep-wp-clear" onclick="clearWaypoint()" style="display:none">✕</button>
+        </div>
+        <div class="ep" id="ep-dst-row">
+          <div class="ep-dot dst"></div>
+          <span class="ep-lbl">Destination</span>
+          <span class="ep-val" id="ep-dst">—</span>
+          <button class="ep-btn" onclick="pickEndpoint('dest')">Set</button>
+        </div>
       </div>
-      <div class="ep">
-        <div class="ep-dot dst"></div>
-        <span class="ep-lbl">Destination</span>
-        <span class="ep-val" id="ep-dst">—</span>
-        <button class="ep-btn" onclick="pickEndpoint('dest')">Set</button>
+      <div class="wp-info" id="wp-info">
+        Via waypoint mode: runs Dijkstra twice —<br>
+        Source → Waypoint, then Waypoint → Dest.<br>
+        Shows both segments with different colors.
+      </div>
+      <div class="wp-route" id="wp-route-display">
+        <span class="wp-seg wp-seg-1" id="wpr-seg1">—</span>
+        <span class="wp-arrow">→</span>
+        <span class="wp-seg wp-seg-2" id="wpr-seg2">—</span>
+        <span class="wp-cost" id="wpr-cost"></span>
       </div>
     </div>
   </div>
 
+  <!-- Animation -->
   <div class="pnl">
     <div class="pnl-hdr" onclick="togglePanel(this)">
       <span class="pnl-ttl">Animation</span><span class="pnl-arr open">▼</span>
@@ -281,13 +355,14 @@ tr:hover td{color:var(--text)}
       </div>
       <div class="spd">
         <span>Speed</span>
-        <input type="range" id="spd-sl" min="150" max="1600" value="750" step="50"
+        <input type="range" id="spd-sl" min="150" max="1600" value="700" step="50"
           oninput="animSpeed=+this.value;document.getElementById('spd-v').textContent=(this.value/1000).toFixed(1)+'s'"/>
-        <span id="spd-v">0.8s</span>
+        <span id="spd-v">0.7s</span>
       </div>
     </div>
   </div>
 
+  <!-- Steps -->
   <div class="pnl" id="pnl-steps" style="display:none">
     <div class="pnl-hdr" onclick="togglePanel(this)">
       <span class="pnl-ttl">Visit Order</span><span class="pnl-arr open">▼</span>
@@ -295,9 +370,10 @@ tr:hover td{color:var(--text)}
     <div class="pnl-body"><div id="step-list"></div></div>
   </div>
 
+  <!-- Distances -->
   <div class="pnl" id="pnl-dist" style="display:none">
     <div class="pnl-hdr" onclick="togglePanel(this)">
-      <span class="pnl-ttl">Shortest Distances</span><span class="pnl-arr open">▼</span>
+      <span class="pnl-ttl">Distances</span><span class="pnl-arr open">▼</span>
     </div>
     <div class="pnl-body"><div id="dist-tbl"></div></div>
   </div>
@@ -305,17 +381,19 @@ tr:hover td{color:var(--text)}
 </div><!-- /sidebar -->
 
 <div id="right">
-
   <div id="tb">
     <button class="tb on" id="tb-node"   onclick="setMode('node')">⊕ Node</button>
     <button class="tb"    id="tb-edge"   onclick="setMode('edge')">╌ Edge</button>
     <button class="tb"    id="tb-select" onclick="setMode('select')">⇄ Move</button>
-    <button class="tb red" id="tb-delete" onclick="setMode('delete')">✕ Delete</button>
+    <button class="tb red" id="tb-delete" onclick="setMode('delete')">✕ Del</button>
     <div class="tb-sep"></div>
-    <button class="tb run" onclick="runDijkstra()">▶ Run Dijkstra</button>
+    <button class="tb wpt" id="tb-wp" onclick="pickEndpoint('wp')">◈ Waypoint</button>
+    <button class="tb wpt" id="tb-wp-clear" onclick="clearWaypoint()" style="display:none">✕ Via</button>
+    <div class="tb-sep"></div>
+    <button class="tb run" onclick="runDijkstra()">▶ Run</button>
     <button class="tb" id="tb-step" onclick="stepAnim()" disabled>Step ›</button>
     <button class="tb" id="tb-auto" onclick="autoAnim()" disabled>Auto</button>
-    <button class="tb" onclick="resetAnim()">↺ Reset</button>
+    <button class="tb" onclick="resetAnim()">↺</button>
     <div class="tb-sep"></div>
     <button class="tb" onclick="loadExample()">⟳ Example</button>
     <button class="tb red" onclick="clearAll()">◻ Clear</button>
@@ -330,12 +408,20 @@ tr:hover td{color:var(--text)}
       <defs>
         <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
           <polygon points="0 0,8 3,0 6" fill="rgba(55,80,110,.8)"/></marker>
+        <marker id="arr-p1" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#2ecc71"/></marker>
+        <marker id="arr-p2" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#b06aff"/></marker>
         <marker id="arr-path" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
           <polygon points="0 0,9 3.5,0 7" fill="#f0a500"/></marker>
         <marker id="arr-vis" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <polygon points="0 0,8 3,0 6" fill="rgba(52,152,219,.65)"/></marker>
+          <polygon points="0 0,8 3,0 6" fill="rgba(52,152,219,.55)"/></marker>
         <filter id="glow">
           <feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow2">
+          <feGaussianBlur stdDeviation="5" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
@@ -347,59 +433,60 @@ tr:hover td{color:var(--text)}
   </div>
 
   <div id="infobar">
-    <span id="ib-main">Load the example or click the canvas to build a graph.</span>
+    <span id="ib-main">Load the example or build your graph. Add a waypoint for multi-stop routing.</span>
     <span class="ib-sep"></span>
     <span>Nodes <b id="ib-nc">0</b></span>
     <span>Edges <b id="ib-ec">0</b></span>
     <span id="ib-path"></span>
   </div>
-
-</div><!-- /right -->
-</div><!-- /body -->
+</div>
+</div>
 
 <div id="bench">
   <div class="bench-hdr" onclick="toggleBench()">
-    <span class="bench-ttl">⚡ Benchmark Results — C++ Execution Times</span>
+    <span class="bench-ttl">⚡ Benchmark — C++ Execution</span>
     <span id="b-arr" class="bench-arr">▼ show</span>
   </div>
   <div id="bench-body">
     <table>
       <thead><tr>
         <th>Density</th><th>Nodes</th><th>Edges</th>
-        <th>Complexity</th><th>Time (ms)</th><th>0→N Cost</th><th>Notes</th>
+        <th>Complexity</th><th>Time (ms)</th><th>Cost</th><th>Notes</th>
       </tr></thead>
       <tbody>
         <tr><td class="tc-d">Sparse</td><td>20</td><td>25</td><td>O(V log V)</td><td class="tc-t">~0.0012</td><td class="tc-c">63</td><td style="color:var(--text3)">Nearly a tree</td></tr>
-        <tr><td class="tc-d">Medium</td><td>50</td><td>100</td><td>O((V+E) log V)</td><td class="tc-t">~0.0055</td><td class="tc-c">28</td><td style="color:var(--text3)">Typical delivery grid</td></tr>
-        <tr><td class="tc-d">Dense</td><td>100</td><td>400</td><td>O((V+E) log V)</td><td class="tc-t">~0.025</td><td class="tc-c">16</td><td style="color:var(--text3)">Urban road network</td></tr>
-        <tr><td class="tc-d">X-Dense</td><td>500</td><td>3000</td><td>O((V+E) log V)</td><td class="tc-t">~0.130</td><td class="tc-c">13</td><td style="color:var(--text3)">Large city logistics</td></tr>
-        <tr><td class="tc-d">Huge</td><td>1000</td><td>8000</td><td>O((V+E) log V)</td><td class="tc-t">~0.306</td><td class="tc-c">14</td><td style="color:var(--text3)">National-scale routing</td></tr>
+        <tr><td class="tc-d">Medium</td><td>50</td><td>100</td><td>O((V+E) log V)</td><td class="tc-t">~0.0055</td><td class="tc-c">28</td><td style="color:var(--text3)">Delivery grid</td></tr>
+        <tr><td class="tc-d">Dense</td><td>100</td><td>400</td><td>O((V+E) log V)</td><td class="tc-t">~0.025</td><td class="tc-c">16</td><td style="color:var(--text3)">Urban network</td></tr>
+        <tr><td class="tc-d">X-Dense</td><td>500</td><td>3000</td><td>O((V+E) log V)</td><td class="tc-t">~0.130</td><td class="tc-c">13</td><td style="color:var(--text3)">City logistics</td></tr>
+        <tr><td class="tc-d">Huge</td><td>1000</td><td>8000</td><td>O((V+E) log V)</td><td class="tc-t">~0.306</td><td class="tc-c">14</td><td style="color:var(--text3)">National scale</td></tr>
       </tbody>
     </table>
     <div class="bench-note">
-      Compile: <b>g++ -O2 -std=c++17 -o route route.cpp</b> &nbsp;|&nbsp;
-      Run: <b>./route &gt; output.json</b> &nbsp;|&nbsp;
-      Benchmark output: <b>./route 2&gt;&amp;1 | grep -A20 BENCHMARK</b><br>
-      Timer: <b>chrono::high_resolution_clock</b> · PQ: <b>binary min-heap O(log V) per op</b>
+      Compile: <b>g++ -O2 -std=c++11 -o route route.cpp</b> &nbsp;|&nbsp;
+      Run: <b>route.exe &gt; output.json</b> &nbsp;|&nbsp;
+      Waypoint: runs Dijkstra <b>twice</b>, O(2·(V+E) log V)
     </div>
   </div>
 </div>
 
-</div><!-- /app -->
+</div>
 
 <div id="modal-bg">
   <div id="modal">
     <div class="m-ttl">SET EDGE WEIGHT</div>
-    <div class="m-lbl">Enter a positive integer (1 – 999)</div>
+    <div class="m-lbl">Enter a positive integer (1–999)</div>
     <input id="w-inp" type="number" min="1" max="999" value="1"/>
     <div class="m-btns">
-      <button class="m-btn"    onclick="cancelWeight()">Cancel</button>
+      <button class="m-btn" onclick="cancelWeight()">Cancel</button>
       <button class="m-btn ok" onclick="confirmWeight()">Add Edge →</button>
     </div>
   </div>
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════════
 const NS  = 'http://www.w3.org/2000/svg';
 const svg = document.getElementById('svg');
 const GE  = document.getElementById('g-edges');
@@ -407,40 +494,41 @@ const GN  = document.getElementById('g-nodes');
 const GT  = document.getElementById('g-tmp');
 
 const NODE_NAMES = ['Warehouse','Hub-Alpha','Hub-Beta','Hub-Gamma','Hub-Delta',
-  'Hub-Epsilon','Destination','Node-H','Node-I','Node-J','Node-K','Node-L','Node-M'];
+  'Hub-Epsilon','Destination','Node-H','Node-I','Node-J','Node-K','Node-L','Node-M','Node-N'];
 
 let nodes=[], edges=[], nId=0, eId=0;
 let mode='node', edgeStart=null, pendingEdge=null, pickingFor=null;
-let srcNode=null, destNode=null;
+let srcNode=null, destNode=null, wpNode=null;
 let dragging=null, dox=0, doy=0;
-let dijRes=null, animSteps=[], animIdx=0, autoTimer=null, animSpeed=750;
+let dijRes=null, animSteps=[], animIdx=0, autoTimer=null, animSpeed=700;
 
-// ── UI helpers ────────────────────────────────────────────────────
-function togglePanel(hdr) {
+// ═══════════════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function togglePanel(hdr){
   const b=hdr.nextElementSibling, a=hdr.querySelector('.pnl-arr');
   const open=!b.classList.contains('closed');
-  b.classList.toggle('closed',open);
-  a.classList.toggle('open',!open);
+  b.classList.toggle('closed',open); a.classList.toggle('open',!open);
 }
-function toggleBench() {
+function toggleBench(){
   const b=document.getElementById('bench-body'), a=document.getElementById('b-arr');
   const v=b.style.display==='block';
-  b.style.display=v?'none':'block';
-  a.textContent=v?'▼ show':'▲ hide';
+  b.style.display=v?'none':'block'; a.textContent=v?'▼ show':'▲ hide';
 }
 
 const HINTS={
-  node:'Click anywhere on the canvas to place a node',
-  edge:'Click a node to start an edge, then click another node',
+  node:'Click anywhere to place a node',
+  edge:'Click a node to start an edge, then click another to connect',
   select:'Drag any node to reposition it',
-  delete:'Click a node or edge to delete it',
-  src:'Click any node to set it as the source (green)',
-  dest:'Click any node to set it as the destination (red)',
+  delete:'Click a node or edge to remove it',
+  src:'Click a node to set it as the source (green)',
+  dest:'Click a node to set it as the destination (red)',
+  wp:'Click a node to set it as the waypoint — route will go Source → Waypoint → Destination'
 };
-const MLBL={node:'add node',edge:'add edge',select:'move nodes',
-  delete:'delete',src:'pick source',dest:'pick destination'};
+const MLBL={node:'add node',edge:'add edge',select:'move nodes',delete:'delete',
+  src:'pick source',dest:'pick destination',wp:'pick waypoint (intermediate stop)'};
 
-function setMode(m) {
+function setMode(m){
   mode=m; edgeStart=null; GT.innerHTML='';
   ['node','edge','select','delete'].forEach(k=>{
     document.getElementById('sb-'+k)?.classList.toggle('on',k===m);
@@ -450,12 +538,39 @@ function setMode(m) {
   document.getElementById('mode-txt').textContent='mode: '+(MLBL[m]||m);
   document.getElementById('hint').textContent=HINTS[m]||'';
 }
-function pickEndpoint(which) {
+
+function pickEndpoint(which){
   pickingFor=which;
   document.getElementById('cvwrap').className='m-'+which;
   document.getElementById('mode-txt').textContent='mode: '+MLBL[which];
   document.getElementById('hint').textContent=HINTS[which];
+  // highlight active row
+  document.querySelectorAll('.ep').forEach(e=>e.classList.remove('active-pick'));
+  const rowMap={src:'ep-src-row',dest:'ep-dst-row',wp:'ep-wp-row'};
+  if(rowMap[which]) document.getElementById(rowMap[which]).classList.add('active-pick');
 }
+
+function clearWaypoint(){
+  wpNode=null;
+  document.getElementById('ep-wp').textContent='—';
+  document.getElementById('ep-wp-clear').style.display='none';
+  document.getElementById('tb-wp-clear').style.display='none';
+  document.getElementById('tb-wp').style.display='';
+  document.getElementById('wp-info').classList.remove('show');
+  document.getElementById('wp-route-display').classList.remove('show');
+  document.getElementById('ib-path').textContent='';
+  resetAnim(); renderAll();
+  setInfo('Waypoint cleared. Route will run direct Source → Destination.');
+}
+
+function updateWaypointUI(){
+  const hasWp = wpNode !== null;
+  document.getElementById('ep-wp-clear').style.display = hasWp ? '' : 'none';
+  document.getElementById('tb-wp-clear').style.display = hasWp ? '' : 'none';
+  document.getElementById('tb-wp').style.display       = hasWp ? 'none' : '';
+  document.getElementById('wp-info').classList.toggle('show', hasWp);
+}
+
 function setInfo(html){ document.getElementById('ib-main').innerHTML=html; }
 function setArmed(yes){
   ['ab-step','ab-auto','tb-step','tb-auto'].forEach(id=>{
@@ -467,24 +582,40 @@ function updateCounters(){
   document.getElementById('ib-ec').textContent=edges.length;
   document.getElementById('ep-src').textContent=srcNode!==null?(nodeById(srcNode)?.label||'—'):'—';
   document.getElementById('ep-dst').textContent=destNode!==null?(nodeById(destNode)?.label||'—'):'—';
+  document.getElementById('ep-wp').textContent=wpNode!==null?(nodeById(wpNode)?.label||'—'):'—';
 }
 
-// ── SVG coords ────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  SVG COORDS
+// ═══════════════════════════════════════════════════════════════════
 function svgPt(e){
   const r=svg.getBoundingClientRect(), vb=svg.viewBox.baseVal;
   const s=e.touches?e.touches[0]:e;
   return{x:(s.clientX-r.left)*vb.width/r.width, y:(s.clientY-r.top)*vb.height/r.height};
 }
 
-// ── Render ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════════════
 function nodeById(id){ return nodes.find(n=>n.id===id); }
 function eKey(a,b){ return Math.min(a,b)+'-'+Math.max(a,b); }
 function renderAll(){ renderEdges(); renderNodes(); updateCounters(); }
 
-function el(tag,attrs){
+function mk(tag,attrs){
   const e=document.createElementNS(NS,tag);
   for(const[k,v] of Object.entries(attrs)) e.setAttribute(k,v);
   return e;
+}
+
+function getEdgeColor(e){
+  if(!dijRes) return null;
+  const onP1 = dijRes.pathEdges1 && dijRes.pathEdges1.has(eKey(e.u,e.v));
+  const onP2 = dijRes.pathEdges2 && dijRes.pathEdges2.has(eKey(e.u,e.v));
+  const onPath = dijRes.pathEdges && dijRes.pathEdges.has(eKey(e.u,e.v)); // direct mode
+  if(onP1) return 'seg1';
+  if(onP2) return 'seg2';
+  if(onPath) return 'path';
+  return null;
 }
 
 function renderEdges(){
@@ -492,30 +623,33 @@ function renderEdges(){
   for(const e of edges){
     const u=nodeById(e.u), v=nodeById(e.v);
     if(!u||!v) continue;
-    const onPath=dijRes?.pathEdges?.has(eKey(e.u,e.v));
+    const col=getEdgeColor(e);
     const bothVis=dijRes?.animVisited?.has(e.u)&&dijRes?.animVisited?.has(e.v);
     const g=document.createElementNS(NS,'g');
-    // hit area
-    g.appendChild(el('line',{x1:u.x,y1:u.y,x2:v.x,y2:v.y,stroke:'transparent','stroke-width':'16'}));
-    // visible line
-    const ln=el('line',{x1:u.x,y1:u.y,x2:v.x,y2:v.y,
-      stroke:onPath?'#f0a500':bothVis?'rgba(52,152,219,.5)':'rgba(35,55,82,.95)',
-      'stroke-width':onPath?'3.5':'1.5',
-      'marker-end':onPath?'url(#arr-path)':bothVis?'url(#arr-vis)':'url(#arr)'
-    });
-    if(onPath) ln.setAttribute('filter','url(#glow)');
+
+    g.appendChild(mk('line',{x1:u.x,y1:u.y,x2:v.x,y2:v.y,stroke:'transparent','stroke-width':'16'}));
+
+    const stroke = col==='seg1'?'#2ecc71' : col==='seg2'?'#b06aff' :
+      col==='path'?'#f0a500' : bothVis?'rgba(52,152,219,.45)':'rgba(35,55,82,.9)';
+    const sw = col?'3.5':'1.5';
+    const markerEnd = col==='seg1'?'url(#arr-p1)':col==='seg2'?'url(#arr-p2)':
+      col==='path'?'url(#arr-path)':bothVis?'url(#arr-vis)':'url(#arr)';
+    const ln=mk('line',{x1:u.x,y1:u.y,x2:v.x,y2:v.y,stroke,
+      'stroke-width':sw,'marker-end':markerEnd});
+    if(col) ln.setAttribute('filter','url(#glow)');
     g.appendChild(ln);
-    // weight badge
+
     const mx=(u.x+v.x)/2, my=(u.y+v.y)/2;
-    g.appendChild(el('rect',{x:mx-13,y:my-9,width:26,height:18,rx:4,
-      fill:onPath?'#1a1000':'#0d1117',
-      stroke:onPath?'rgba(240,165,0,.45)':'rgba(30,45,66,.9)',
-      'stroke-width':'.7'}));
-    const wt=el('text',{x:mx,y:my+1,'text-anchor':'middle','dominant-baseline':'central',
+    const bgFill = col==='seg1'?'#0a1a0a':col==='seg2'?'#0d0a1a':col==='path'?'#1a1000':'#0c0f15';
+    const bgStroke = col==='seg1'?'rgba(46,204,113,.4)':col==='seg2'?'rgba(176,106,255,.4)':
+      col==='path'?'rgba(240,165,0,.4)':'rgba(26,35,53,.9)';
+    g.appendChild(mk('rect',{x:mx-13,y:my-9,width:26,height:18,rx:4,fill:bgFill,stroke:bgStroke,'stroke-width':'.7'}));
+    const wt=mk('text',{x:mx,y:my+1,'text-anchor':'middle','dominant-baseline':'central',
       'font-size':'10','font-family':"'JetBrains Mono',monospace",'font-weight':'700',
-      fill:onPath?'#f0a500':'rgba(115,135,160,.85)'});
+      fill:col==='seg1'?'#2ecc71':col==='seg2'?'#b06aff':col==='path'?'#f0a500':'rgba(100,130,160,.8)'});
     wt.textContent=e.w;
     g.appendChild(wt);
+
     if(mode==='delete'){
       g.style.cursor='pointer';
       g.addEventListener('click',ev=>{ev.stopPropagation();deleteEdge(e.id);});
@@ -524,62 +658,88 @@ function renderEdges(){
   }
 }
 
+function getNodeStyle(n){
+  const isSrc=n.id===srcNode, isDst=n.id===destNode, isWp=n.id===wpNode;
+  const onP1=dijRes?.path1?.includes(n.id);
+  const onP2=dijRes?.path2?.includes(n.id);
+  const onPath=dijRes?.path?.includes(n.id); // direct
+  const isVis=dijRes?.animVisited?.has(n.id);
+  const isCurr=dijRes?.curNode===n.id;
+
+  let fill='#141920', stroke='rgba(38,55,80,.9)', sw='1.5', textCol='rgba(196,210,230,.9)';
+  if(isVis&&!onP1&&!onP2&&!onPath)  { fill='#0d1c38'; stroke='#3498db'; sw='2'; textCol='#3498db'; }
+  if(onPath)  { fill='#2a1b00'; stroke='#f0a500'; sw='2.5'; textCol='#f0a500'; }
+  if(onP1)    { fill='#0a1f0e'; stroke='#2ecc71'; sw='2.5'; textCol='#2ecc71'; }
+  if(onP2)    { fill='#0f0a1f'; stroke='#b06aff'; sw='2.5'; textCol='#b06aff'; }
+  // Waypoint node gets special styling — overrides path color
+  if(isWp)    { fill='#150d26'; stroke='#b06aff'; sw='3';   textCol='#b06aff'; }
+  if(isSrc)   { fill='#0d2e1a'; stroke='#2ecc71'; sw='2.5'; textCol='#2ecc71'; }
+  if(isDst)   { fill='#2e0d18'; stroke='#ff4d6d'; sw='2.5'; textCol='#ff4d6d'; }
+  return{fill,stroke,sw,textCol,onP1,onP2,onPath,isVis,isCurr,isSrc,isDst,isWp};
+}
+
 function renderNodes(){
   GN.innerHTML='';
   for(const n of nodes){
-    const isSrc=n.id===srcNode, isDst=n.id===destNode;
-    const onPath=dijRes?.path?.includes(n.id);
-    const isVis=dijRes?.animVisited?.has(n.id);
-    const isCurr=dijRes?.curNode===n.id;
+    const st=getNodeStyle(n);
     const g=document.createElementNS(NS,'g');
     g.style.cursor=mode==='select'?'grab':mode==='delete'?'pointer':pickingFor?'pointer':'default';
 
-    if(isCurr){
-      g.appendChild(el('circle',{cx:n.x,cy:n.y,r:32,fill:'none',
+    // pulse ring for current node being processed
+    if(st.isCurr){
+      g.appendChild(mk('circle',{cx:n.x,cy:n.y,r:33,fill:'none',
         stroke:'rgba(0,212,255,.35)','stroke-width':'2'}));
     }
-    if(isSrc||isDst){
-      g.appendChild(el('circle',{cx:n.x,cy:n.y,r:28,fill:'none',
-        stroke:isSrc?'rgba(46,204,113,.22)':'rgba(255,77,109,.22)','stroke-width':'1.5'}));
+    // outer halo for src/dest/wp
+    if(st.isSrc||st.isDst||st.isWp){
+      const hc=st.isSrc?'rgba(46,204,113,.2)':st.isDst?'rgba(255,77,109,.2)':'rgba(176,106,255,.2)';
+      g.appendChild(mk('circle',{cx:n.x,cy:n.y,r:29,fill:'none',stroke:hc,'stroke-width':'1.5'}));
     }
 
-    // main circle
-    const fill=isSrc?'#0d2e1a':isDst?'#2e0d18':onPath?'#2a1b00':isVis?'#0d1c38':'#141920';
-    const stroke=isSrc?'#2ecc71':isDst?'#ff4d6d':onPath?'#f0a500':isVis?'#3498db':'rgba(38,55,80,.9)';
-    const sw=isSrc||isDst||onPath?'2.5':isVis?'2':'1.5';
-    const c=el('circle',{cx:n.x,cy:n.y,r:21,fill,stroke,'stroke-width':sw});
-    if(onPath) c.setAttribute('filter','url(#glow)');
+    // waypoint diamond marker
+    if(st.isWp && !st.isSrc && !st.isDst){
+      const pts=`${n.x},${n.y-36} ${n.x+10},${n.y-26} ${n.x},${n.y-16} ${n.x-10},${n.y-26}`;
+      g.appendChild(mk('polygon',{points:pts,fill:'#b06aff',opacity:'.7'}));
+    }
+
+    const c=mk('circle',{cx:n.x,cy:n.y,r:21,fill:st.fill,stroke:st.stroke,'stroke-width':st.sw});
+    if(st.onP1||st.onP2||st.onPath) c.setAttribute('filter','url(#glow)');
+    if(st.isWp && !st.isSrc && !st.isDst) c.setAttribute('filter','url(#glow2)');
     g.appendChild(c);
 
-    // dist badge
-    if(isVis&&dijRes?.dist?.[n.id]!==undefined&&dijRes.dist[n.id]!==Infinity){
-      const bx=n.x, by=n.y-30;
-      g.appendChild(el('rect',{x:bx-15,y:by-9,width:30,height:16,rx:4,
-        fill:onPath?'#1a1000':'#0d1c38',
-        stroke:onPath?'rgba(240,165,0,.5)':'rgba(52,152,219,.4)','stroke-width':'.7'}));
-      const bt=el('text',{x:bx,y:by+1,'text-anchor':'middle','dominant-baseline':'central',
-        'font-size':'9','font-family':"'JetBrains Mono',monospace",'font-weight':'700',
-        fill:onPath?'#f0a500':'#3498db'});
+    // distance badge
+    if(st.isVis && dijRes?.dist?.[n.id]!==undefined && dijRes.dist[n.id]!==Infinity){
+      const bx=n.x, by=n.y-31;
+      const badgeFill=st.onP1?'#0a1a0a':st.onP2?'#0d0a1a':'#0d1c38';
+      const badgeStroke=st.onP1?'rgba(46,204,113,.45)':st.onP2?'rgba(176,106,255,.45)':'rgba(52,152,219,.4)';
+      const badgeTxt=st.onP1?'#2ecc71':st.onP2?'#b06aff':'#3498db';
+      g.appendChild(mk('rect',{x:bx-15,y:by-9,width:30,height:16,rx:4,fill:badgeFill,stroke:badgeStroke,'stroke-width':'.7'}));
+      const bt=mk('text',{x:bx,y:by+1,'text-anchor':'middle','dominant-baseline':'central',
+        'font-size':'9','font-family':"'JetBrains Mono',monospace",'font-weight':'700',fill:badgeTxt});
       bt.textContent='d='+dijRes.dist[n.id];
       g.appendChild(bt);
     }
 
     // label
-    const fc=isSrc?'#2ecc71':isDst?'#ff4d6d':onPath?'#f0a500':isVis?'#3498db':'rgba(196,210,230,.9)';
-    const lbl=el('text',{x:n.x,y:n.y,'text-anchor':'middle','dominant-baseline':'central',
+    const lbl=mk('text',{x:n.x,y:n.y,'text-anchor':'middle','dominant-baseline':'central',
       'font-size':'12','font-weight':'700','font-family':"'JetBrains Mono',monospace",
-      'pointer-events':'none',fill:fc});
+      'pointer-events':'none',fill:st.textCol});
     lbl.textContent=n.label;
     g.appendChild(lbl);
 
     // name below
-    const nc=isSrc?'rgba(46,204,113,.7)':isDst?'rgba(255,77,109,.7)':
-      onPath?'rgba(240,165,0,.6)':'rgba(65,85,110,.75)';
-    const nm=el('text',{x:n.x,y:n.y+33,'text-anchor':'middle',
-      'font-size':'8','font-weight':'500','font-family':"'JetBrains Mono',monospace",
-      'pointer-events':'none',fill:nc});
+    const nm=mk('text',{x:n.x,y:n.y+34,'text-anchor':'middle','font-size':'8','font-weight':'500',
+      'font-family':"'JetBrains Mono',monospace",'pointer-events':'none',fill:'rgba(65,85,110,.75)'});
     nm.textContent=n.name||'';
     g.appendChild(nm);
+
+    // WP label
+    if(st.isWp && !st.isSrc && !st.isDst){
+      const wplbl=mk('text',{x:n.x,y:n.y-44,'text-anchor':'middle','font-size':'8','font-weight':'700',
+        'font-family':"'JetBrains Mono',monospace",'pointer-events':'none',fill:'#b06aff'});
+      wplbl.textContent='VIA';
+      g.appendChild(wplbl);
+    }
 
     g.addEventListener('mousedown',ev=>onNodeMD(ev,n.id));
     g.addEventListener('touchstart',ev=>onNodeMD(ev,n.id),{passive:false});
@@ -588,7 +748,9 @@ function renderNodes(){
   }
 }
 
-// ── Events ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  EVENTS
+// ═══════════════════════════════════════════════════════════════════
 svg.addEventListener('click',onSvgClick);
 svg.addEventListener('mousemove',onSvgMove);
 svg.addEventListener('mouseup',()=>{dragging=null;});
@@ -604,53 +766,57 @@ function onSvgClick(ev){
 }
 function onNodeMD(ev,id){
   if(pickingFor) return;
-  if(mode==='select'){
-    ev.preventDefault(); dragging=id;
-    const n=nodeById(id),p=svgPt(ev); dox=p.x-n.x; doy=p.y-n.y;
-  }
+  if(mode==='select'){ev.preventDefault();dragging=id;const n=nodeById(id),p=svgPt(ev);dox=p.x-n.x;doy=p.y-n.y;}
 }
 function onNodeClick(ev,id){
   ev.stopPropagation();
   if(dragging) return;
+  document.querySelectorAll('.ep').forEach(e=>e.classList.remove('active-pick'));
+
   if(pickingFor){
-    if(pickingFor==='src') srcNode=id;
+    if(pickingFor==='src')  srcNode=id;
     if(pickingFor==='dest') destNode=id;
+    if(pickingFor==='wp'){
+      // validate: waypoint cannot be src or dest
+      if(id===srcNode||id===destNode){
+        setInfo('<span class="err">⚠ Waypoint cannot be the same as source or destination.</span>');
+        pickingFor=null; setMode('node'); return;
+      }
+      wpNode=id;
+      updateWaypointUI();
+    }
     pickingFor=null; setMode('node'); resetAnim(); renderAll();
-    setInfo('Endpoints set — Source <b>'+(srcNode!==null?nodeById(srcNode)?.label:'—')+'</b>  Dest <b>'+(destNode!==null?nodeById(destNode)?.label:'—')+'</b>. Press ▶ Run.');
+    updateCounters();
+    const sl=nodeById(srcNode)?.label||'—', dl=nodeById(destNode)?.label||'—';
+    const wl=wpNode?(' via <span class="hi2">'+nodeById(wpNode)?.label+'</span>'):'';
+    setInfo('Route: <b>'+sl+'</b>'+wl+' → <b>'+dl+'</b>. Press ▶ Run.');
     return;
   }
-  if(mode==='delete'){ deleteNode(id); return; }
+  if(mode==='delete'){deleteNode(id);return;}
   if(mode==='edge'){
-    if(edgeStart===null){
-      edgeStart=id;
-      document.getElementById('mode-txt').textContent='now click destination node';
-      renderAll();
-    } else if(edgeStart!==id){
-      pendingEdge={u:edgeStart,v:id}; edgeStart=null; GT.innerHTML=''; openModal();
-    } else {
-      edgeStart=null; GT.innerHTML='';
-      document.getElementById('mode-txt').textContent=MLBL.edge;
-    }
+    if(edgeStart===null){edgeStart=id;document.getElementById('mode-txt').textContent='now click destination node';renderAll();}
+    else if(edgeStart!==id){pendingEdge={u:edgeStart,v:id};edgeStart=null;GT.innerHTML='';openModal();}
+    else{edgeStart=null;GT.innerHTML='';document.getElementById('mode-txt').textContent=MLBL.edge;}
   }
 }
 function onSvgMove(ev){
   if(ev.type==='touchmove') ev.preventDefault();
   if(dragging!==null){
     const p=svgPt(ev),n=nodeById(dragging);
-    n.x=Math.max(26,Math.min(934,p.x-dox));
-    n.y=Math.max(26,Math.min(474,p.y-doy));
+    n.x=Math.max(26,Math.min(934,p.x-dox)); n.y=Math.max(26,Math.min(474,p.y-doy));
     renderAll(); return;
   }
   if(mode==='edge'&&edgeStart!==null){
-    const p=svgPt(ev),n=nodeById(edgeStart);
-    GT.innerHTML='';
-    const ln=el('line',{x1:n.x,y1:n.y,x2:p.x,y2:p.y,
-      stroke:'rgba(0,212,255,.7)','stroke-width':'1.5','stroke-dasharray':'6 4','pointer-events':'none'});
+    const p=svgPt(ev),n=nodeById(edgeStart); GT.innerHTML='';
+    const ln=mk('line',{x1:n.x,y1:n.y,x2:p.x,y2:p.y,
+      stroke:'rgba(0,212,255,.65)','stroke-width':'1.5','stroke-dasharray':'6 4','pointer-events':'none'});
     GT.appendChild(ln);
   }
 }
 
-// ── CRUD ──────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  CRUD
+// ═══════════════════════════════════════════════════════════════════
 function addNode(x,y){
   const id=nId++;
   const alpha='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -661,26 +827,25 @@ function addNode(x,y){
 }
 function deleteNode(id){
   nodes=nodes.filter(n=>n.id!==id); edges=edges.filter(e=>e.u!==id&&e.v!==id);
-  if(srcNode===id) srcNode=null; if(destNode===id) destNode=null;
+  if(srcNode===id) srcNode=null;
+  if(destNode===id) destNode=null;
+  if(wpNode===id){ wpNode=null; updateWaypointUI(); }
   resetAnim(); renderAll(); setInfo('Node deleted.');
 }
-function deleteEdge(id){
-  edges=edges.filter(e=>e.id!==id); resetAnim(); renderAll(); setInfo('Edge deleted.');
-}
+function deleteEdge(id){edges=edges.filter(e=>e.id!==id);resetAnim();renderAll();setInfo('Edge deleted.');}
 
-// ── Modal ─────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════════════════
 function openModal(){
   document.getElementById('w-inp').value='1';
   document.getElementById('modal-bg').classList.add('show');
   setTimeout(()=>document.getElementById('w-inp').select(),60);
 }
 document.getElementById('w-inp').addEventListener('keydown',e=>{
-  if(e.key==='Enter') confirmWeight();
-  if(e.key==='Escape') cancelWeight();
+  if(e.key==='Enter') confirmWeight(); if(e.key==='Escape') cancelWeight();
 });
-document.getElementById('modal-bg').addEventListener('click',e=>{
-  if(e.target===e.currentTarget) cancelWeight();
-});
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===e.currentTarget)cancelWeight();});
 function confirmWeight(){
   const w=Math.max(1,parseInt(document.getElementById('w-inp').value)||1);
   document.getElementById('modal-bg').classList.remove('show');
@@ -688,72 +853,153 @@ function confirmWeight(){
   edges.push({id:eId++,u:pendingEdge.u,v:pendingEdge.v,w});
   pendingEdge=null; resetAnim(); renderAll();
   document.getElementById('mode-txt').textContent=MLBL.edge;
-  setInfo('Edge added with weight <b>'+w+'</b>. Continue or press ▶ Run.');
+  setInfo('Edge added with weight <b>'+w+'</b>.');
 }
-function cancelWeight(){
-  document.getElementById('modal-bg').classList.remove('show');
-  pendingEdge=null; edgeStart=null;
-}
+function cancelWeight(){document.getElementById('modal-bg').classList.remove('show');pendingEdge=null;edgeStart=null;}
 
-// ── Dijkstra ──────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  CORE DIJKSTRA
+// ═══════════════════════════════════════════════════════════════════
 function dijkstra(srcId){
   const INF=Infinity, dist={}, parent={}, visited=new Set(), steps=[];
-  for(const n of nodes){ dist[n.id]=INF; parent[n.id]=-1; }
+  for(const n of nodes){dist[n.id]=INF;parent[n.id]=-1;}
   dist[srcId]=0;
   const adj={};
   for(const n of nodes) adj[n.id]=[];
-  for(const e of edges){ adj[e.u].push({to:e.v,w:e.w}); adj[e.v].push({to:e.u,w:e.w}); }
+  for(const e of edges){adj[e.u].push({to:e.v,w:e.w});adj[e.v].push({to:e.u,w:e.w});}
   const pq=[[0,srcId]];
   while(pq.length){
     pq.sort((a,b)=>a[0]-b[0]);
-    const[d,u]=pq.shift();
+    const d=pq[0][0], u=pq[0][1]; pq.shift();
     if(d>dist[u]||visited.has(u)) continue;
     visited.add(u);
-    steps.push({node:u,dist:dist[u],via:parent[u],snap:{...dist}});
-    for(const{to:v,w} of adj[u]){
-      if(dist[u]+w<dist[v]){ dist[v]=dist[u]+w; parent[v]=u; pq.push([dist[v],v]); }
+    steps.push({node:u,dist:dist[u],via:parent[u],snap:Object.assign({},dist)});
+    for(let i=0;i<adj[u].length;i++){
+      const v=adj[u][i].to, w=adj[u][i].w;
+      if(dist[u]+w<dist[v]){dist[v]=dist[u]+w;parent[v]=u;pq.push([dist[v],v]);}
     }
   }
   return{dist,parent,visited,steps};
 }
+
 function getPath(parent,dest){
   const p=[]; for(let v=dest;v!==-1;v=parent[v]) p.push(v); return p.reverse();
 }
 
-// ── Animation ─────────────────────────────────────────────────────
+function pathEdgeSet(path){
+  const s=new Set();
+  for(let i=0;i<path.length-1;i++) s.add(eKey(path[i],path[i+1]));
+  return s;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  RUN — supports both direct and waypoint modes
+// ═══════════════════════════════════════════════════════════════════
 function runDijkstra(){
   if(srcNode===null||destNode===null){
-    setInfo('<span class="err">⚠ Set a source and destination first.</span>'); return;
+    setInfo('<span class="err">⚠ Set source and destination first.</span>'); return;
   }
-  if(nodes.length<2){ setInfo('<span class="err">⚠ Need at least 2 nodes.</span>'); return; }
+  if(nodes.length<2){setInfo('<span class="err">⚠ Need at least 2 nodes.</span>');return;}
   stopAuto();
-  const t0=performance.now(), res=dijkstra(srcNode), dt=performance.now()-t0;
-  const path=getPath(res.parent,destNode);
-  if(res.dist[destNode]===Infinity){
-    setInfo('<span class="err">✕ No path from '+nodeById(srcNode)?.label+' to '+nodeById(destNode)?.label+'.</span>');
-    dijRes=null; renderAll(); return;
+
+  const t0=performance.now();
+
+  if(wpNode!==null){
+    // ── WAYPOINT MODE: two Dijkstra runs ──────────────────────────
+    if(wpNode===srcNode||wpNode===destNode){
+      setInfo('<span class="err">⚠ Waypoint must differ from source and destination.</span>'); return;
+    }
+
+    // Phase 1: src → waypoint
+    const res1=dijkstra(srcNode);
+    if(res1.dist[wpNode]===Infinity){
+      setInfo('<span class="err">✕ No path from '+nodeById(srcNode)?.label+' to waypoint '+nodeById(wpNode)?.label+'.</span>');
+      return;
+    }
+
+    // Phase 2: waypoint → dest
+    const res2=dijkstra(wpNode);
+    if(res2.dist[destNode]===Infinity){
+      setInfo('<span class="err">✕ No path from waypoint '+nodeById(wpNode)?.label+' to '+nodeById(destNode)?.label+'.</span>');
+      return;
+    }
+
+    const dt=performance.now()-t0;
+    const path1=getPath(res1.parent,wpNode);
+    const path2=getPath(res2.parent,destNode);
+    const totalCost=res1.dist[wpNode]+res2.dist[destNode];
+
+    // tag each step with phase
+    const steps1=res1.steps.map(s=>Object.assign({},s,{phase:1}));
+    const steps2=res2.steps.map(s=>Object.assign({},s,{phase:2}));
+    const allSteps=steps1.concat(steps2);
+
+    dijRes={
+      mode:'wp',
+      dist:res1.dist,   // shown live during phase 1 (updated in stepAnim for phase 2)
+      dist1:res1.dist, dist2:res2.dist,
+      path1, path2, pathEdges1:null, pathEdges2:null,
+      path:null, pathEdges:null,
+      animVisited:new Set(), curNode:null,
+      steps:allSteps, done:false, dt,
+      cost1:res1.dist[wpNode], cost2:res2.dist[destNode], totalCost
+    };
+
+  } else {
+    // ── DIRECT MODE ───────────────────────────────────────────────
+    const res=dijkstra(srcNode);
+    const dt=performance.now()-t0;
+    const path=getPath(res.parent,destNode);
+
+    if(res.dist[destNode]===Infinity){
+      setInfo('<span class="err">✕ No path from '+nodeById(srcNode)?.label+' to '+nodeById(destNode)?.label+'.</span>');
+      dijRes=null; renderAll(); return;
+    }
+
+    dijRes={
+      mode:'direct',
+      dist:res.dist, parent:res.parent,
+      path, pathEdges:null,
+      path1:null, path2:null, pathEdges1:null, pathEdges2:null,
+      animVisited:new Set(), curNode:null,
+      steps:res.steps, done:false, dt
+    };
   }
-  dijRes={dist:res.dist,parent:res.parent,visited:new Set(),animVisited:new Set(),
-    path,pathEdges:new Set(),steps:res.steps,done:false,curNode:null,dt};
-  animSteps=res.steps; animIdx=0;
+
+  animSteps=dijRes.steps;
+  animIdx=0;
   setArmed(true);
-  buildStepList(); buildDistTable();
+  buildStepList();
+  buildDistTable();
   document.getElementById('pnl-steps').style.display='';
   document.getElementById('pnl-dist').style.display='';
   renderAll();
-  setInfo('Ready — <b>'+res.steps.length+'</b> steps. Press <span class="hi">Step ›</span> or <span class="hi">Auto</span>.');
+
+  if(wpNode!==null){
+    const sl=nodeById(srcNode)?.label, wl=nodeById(wpNode)?.label, dl=nodeById(destNode)?.label;
+    setInfo('Waypoint mode: <span class="hi2">'+sl+' → '+wl+' → '+dl+'</span> — <b>'+animSteps.length+'</b> total steps. Press Step › or Auto.');
+  } else {
+    setInfo('Ready — <b>'+animSteps.length+'</b> steps. Press <span class="hi">Step ›</span> or <span class="hi">Auto</span>.');
+  }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  ANIMATION
+// ═══════════════════════════════════════════════════════════════════
 function buildStepList(){
   const ul=document.getElementById('step-list'); ul.innerHTML='';
   for(let i=0;i<animSteps.length;i++){
-    const s=animSteps[i],n=nodeById(s.node);
+    const s=animSteps[i], n=nodeById(s.node);
     const li=document.createElement('div');
+    const isP2=s.phase===2;
     li.className='si'; li.id='si-'+i;
-    li.innerHTML='<div class="si-n">'+(i+1)+'</div><span>Visit <b>'+(n?n.label:'?')+'</b> · d='+s.dist+'</span>';
+    li.innerHTML='<div class="si-n">'+(i+1)+'</div>'
+      +'<span>Visit <b>'+(n?n.label:'?')+'</b> d='+s.dist+'</span>'
+      +(s.phase?'<span class="si-phase '+(isP2?'phase-2':'phase-1')+'">'+(isP2?'→WP':'SRC→')+'</span>':'');
     ul.appendChild(li);
   }
 }
+
 function buildDistTable(){
   const t=document.getElementById('dist-tbl'); t.innerHTML='';
   for(const n of nodes){
@@ -767,39 +1013,86 @@ function buildDistTable(){
 
 function stepAnim(){
   if(!dijRes) return;
-  if(animIdx>=animSteps.length){ finishAnim(); return; }
+  if(animIdx>=animSteps.length){finishAnim();return;}
+
   const s=animSteps[animIdx], n=nodeById(s.node);
-  dijRes.animVisited.add(s.node); dijRes.visited.add(s.node); dijRes.curNode=s.node;
+  dijRes.animVisited.add(s.node); dijRes.curNode=s.node;
+
+  // in waypoint mode, switch active dist reference at phase boundary
+  if(dijRes.mode==='wp' && s.phase===2){
+    dijRes.dist=dijRes.dist2;
+  }
+
   document.querySelectorAll('.si').forEach(e=>e.classList.remove('cur'));
   const si=document.getElementById('si-'+animIdx);
-  if(si){ si.classList.add('cur','done'); si.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+  if(si){
+    si.classList.add('cur','done');
+    if(s.phase===2) si.classList.add('wp-phase','wp-done');
+    si.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+
+  // update dist table
   for(const nd of nodes){
     const dv=document.getElementById('dv-'+nd.id), row=document.getElementById('dr-'+nd.id);
     if(!dv||!row) continue;
     const d=s.snap[nd.id];
     dv.textContent=(d===Infinity||d===undefined)?'∞':d;
-    row.classList.toggle('path',dijRes.path.includes(nd.id)&&dijRes.animVisited.has(nd.id));
+    const onP1=dijRes.path1?.includes(nd.id)&&dijRes.animVisited.has(nd.id);
+    const onP2=dijRes.path2?.includes(nd.id)&&dijRes.animVisited.has(nd.id);
+    row.classList.toggle('path1',!!onP1);
+    row.classList.toggle('path2',!!onP2);
   }
+
+  const phaseStr=s.phase===1?' <span class="hi" style="font-size:9px">[Phase 1: src→via]</span>':
+    s.phase===2?' <span class="hi2" style="font-size:9px">[Phase 2: via→dest]</span>':'';
   setInfo('<span class="hi">Step '+(animIdx+1)+'/'+animSteps.length+'</span>'
     +' — Visiting <b>'+(n?n.label:'?')+'</b> ('+n?.name+')'
-    +' &nbsp; dist=<b>'+s.dist+'</b>'
-    +(s.via!==-1&&s.via!=null?' &nbsp; via=<b>'+nodeById(s.via)?.label+'</b>':''));
+    +' dist=<b>'+s.dist+'</b>'
+    +(s.via!==-1&&s.via!=null?' via <b>'+nodeById(s.via)?.label+'</b>':'')
+    +phaseStr);
+
   animIdx++; renderAll();
   if(animIdx>=animSteps.length) setTimeout(finishAnim,500);
 }
 
 function finishAnim(){
   stopAuto(); if(!dijRes) return;
-  dijRes.pathEdges=new Set(
-    dijRes.path.slice(0,-1).map((_,i)=>eKey(dijRes.path[i],dijRes.path[i+1])));
+
+  if(dijRes.mode==='wp'){
+    dijRes.pathEdges1=pathEdgeSet(dijRes.path1);
+    dijRes.pathEdges2=pathEdgeSet(dijRes.path2);
+    const sl=nodeById(srcNode)?.label||'?';
+    const wl=nodeById(wpNode)?.label||'?';
+    const dl=nodeById(destNode)?.label||'?';
+    const p1str=dijRes.path1.map(id=>nodeById(id)?.label||id).join('→');
+    const p2str=dijRes.path2.map(id=>nodeById(id)?.label||id).join('→');
+
+    document.getElementById('wp-route-display').classList.add('show');
+    document.getElementById('wpr-seg1').textContent=p1str;
+    document.getElementById('wpr-seg2').textContent=p2str;
+    document.getElementById('wpr-cost').textContent=
+      'cost: '+dijRes.cost1+' + '+dijRes.cost2+' = '+dijRes.totalCost;
+
+    setInfo('<b style="color:var(--c2)">✓ Waypoint route found!</b> &nbsp;'
+      +sl+' → <span style="color:var(--c5)">'+wl+'</span> → '+dl
+      +' &nbsp;|&nbsp; Seg1: <b>'+dijRes.cost1+'</b>  Seg2: <b>'+dijRes.cost2+'</b>'
+      +' &nbsp;|&nbsp; Total: <b>'+dijRes.totalCost+'</b>'
+      +' &nbsp;|&nbsp; <b>'+dijRes.dt.toFixed(4)+'ms</b>');
+
+    const pathStr='['+sl+'→'+wl+'→'+dl+'] total='+dijRes.totalCost;
+    document.getElementById('ib-path').innerHTML='<span style="color:var(--c5)">'+pathStr+'</span>';
+
+  } else {
+    dijRes.pathEdges=pathEdgeSet(dijRes.path);
+    const cost=dijRes.dist[destNode];
+    const pstr=dijRes.path.map(id=>nodeById(id)?.label||id).join(' → ');
+    setInfo('<b style="color:var(--c2)">✓ Shortest path found!</b> &nbsp;'
+      +pstr+' &nbsp;|&nbsp; Cost <b>'+cost+'</b> &nbsp;|&nbsp; <b>'+dijRes.dt.toFixed(4)+'ms</b>');
+    document.getElementById('ib-path').textContent=pstr+' [cost='+cost+']';
+  }
+
   dijRes.done=true; dijRes.curNode=null;
   setArmed(false); renderAll();
-  const cost=dijRes.dist[destNode];
-  const pstr=dijRes.path.map(id=>nodeById(id)?.label||id).join(' → ');
-  const nstr=dijRes.path.map(id=>nodeById(id)?.name||id).join(' → ');
-  setInfo('<b style="color:var(--accent2)">✓ Shortest path found!</b> &nbsp;'
-    +pstr+' &nbsp;|&nbsp; Cost <b>'+cost+'</b> &nbsp;|&nbsp; <b>'+dijRes.dt.toFixed(4)+'ms</b>');
-  document.getElementById('ib-path').textContent=nstr+' [cost='+cost+']';
 }
 
 function autoAnim(){
@@ -807,25 +1100,30 @@ function autoAnim(){
   document.getElementById('ab-auto').disabled=true;
   document.getElementById('tb-auto').disabled=true;
   autoTimer=setInterval(()=>{
-    if(animIdx>=animSteps.length){ stopAuto(); finishAnim(); return; }
+    if(animIdx>=animSteps.length){stopAuto();finishAnim();return;}
     stepAnim();
   },animSpeed);
 }
-function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; } }
+function stopAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;}}
 function resetAnim(){
   stopAuto(); dijRes=null; animSteps=[]; animIdx=0; setArmed(false);
   document.getElementById('ib-path').textContent='';
+  document.getElementById('wp-route-display').classList.remove('show');
   renderAll();
 }
 
-// ── Clear / Example ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  CLEAR / EXAMPLE
+// ═══════════════════════════════════════════════════════════════════
 function clearAll(){
   stopAuto(); nodes=[]; edges=[]; nId=0; eId=0;
-  srcNode=null; destNode=null; dijRes=null; animSteps=[]; animIdx=0;
+  srcNode=null; destNode=null; wpNode=null;
+  dijRes=null; animSteps=[]; animIdx=0;
   document.getElementById('pnl-steps').style.display='none';
   document.getElementById('pnl-dist').style.display='none';
   document.getElementById('ib-path').textContent='';
-  setArmed(false); renderAll();
+  document.getElementById('wp-route-display').classList.remove('show');
+  updateWaypointUI(); setArmed(false); renderAll();
   setInfo('Canvas cleared. Click to add nodes.');
 }
 
@@ -836,9 +1134,9 @@ function loadExample(){
   for(let i=0;i<7;i++)
     nodes.push({id:nId++,x:pos[i][0],y:pos[i][1],label:String.fromCharCode(65+i),name:nms[i]});
   [[0,1,4],[0,2,2],[1,3,5],[2,3,8],[2,4,3],[3,6,6],[4,5,7],[5,6,1],[1,4,2]]
-    .forEach(([u,v,w])=>edges.push({id:eId++,u,v,w}));
+    .forEach(function(t){edges.push({id:eId++,u:t[0],v:t[1],w:t[2]});});
   srcNode=0; destNode=6; renderAll();
-  setInfo('Example loaded — <b>A</b> (Warehouse) → <b>G</b> (Destination). Press <b>▶ Run Dijkstra</b>.');
+  setInfo('Example loaded — <b>A</b>→<b>G</b>. Try setting a <span class="hi2">waypoint</span> via the sidebar or ◈ Waypoint button!');
 }
 
 loadExample();

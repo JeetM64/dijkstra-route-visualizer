@@ -1,2 +1,5 @@
 temp
 temp2
+*.exe
+*.json
+.vscode/
